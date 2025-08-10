@@ -3,7 +3,7 @@ import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: 'Tic-Toc-Toe',
+  title: 'Tic Tac Toe',
   description: 'A vibrant and playful Tic Tac Toe game for all ages.',
 };
 

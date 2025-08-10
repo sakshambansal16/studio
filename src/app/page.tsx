@@ -1,14 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Bot, Baby, GraduationCap, User } from "lucide-react";
+import { Users, Bot, Baby, GraduationCap, User, Palette } from "lucide-react";
 import Link from "next/link";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
       <div className="text-center mb-8 sm:mb-12">
         <h1 className="font-headline text-5xl sm:text-7xl font-bold text-primary-foreground tracking-tight">
-          Tic-Toc-Toe
+          Tic Tac Toe
         </h1>
         <p className="text-muted-foreground mt-2 text-lg sm:text-xl">A vibrant and playful game for all ages.</p>
       </div>
@@ -54,6 +61,29 @@ export default function Home() {
           </CardContent>
         </Card>
       </div>
+      <Card className="w-full max-w-4xl mt-8 shadow-lg bg-card">
+        <CardHeader>
+          <div className="flex items-center gap-4">
+            <Palette className="w-8 h-8 text-accent" />
+            <div>
+              <CardTitle className="font-headline text-2xl">Theme Selector</CardTitle>
+              <CardDescription>Choose a fun theme for your game!</CardDescription>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Select defaultValue="jungle">
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Select a theme" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="jungle">Jungle</SelectItem>
+              <SelectItem value="ocean">Ocean</SelectItem>
+              <SelectItem value="space">Space</SelectItem>
+            </SelectContent>
+          </Select>
+        </CardContent>
+      </Card>
     </main>
   );
 }
