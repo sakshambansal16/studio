@@ -115,7 +115,7 @@ export default function TicTacToeGame() {
   }, [gameMode, ageMode, aiDifficulty]);
   
   const handleCellClick = useCallback((index: number) => {
-    if (isBoardDisabled || board[index]) {
+    if (winnerInfo || board[index]) {
         return;
     }
 
@@ -129,14 +129,16 @@ export default function TicTacToeGame() {
     } else {
       setIsXNext(prev => !prev);
     }
-  }, [board, currentPlayer, isBoardDisabled]);
+  }, [board, currentPlayer, winnerInfo]);
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === 'O' && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
         const timer = setTimeout(() => {
             const move = findBestMove(board, aiDifficulty);
-            handleCellClick(move);
+            if (move !== -1) {
+              handleCellClick(move);
+            }
             setIsAiThinking(false);
         }, 1000);
 

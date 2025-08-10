@@ -36,6 +36,8 @@ const findMove = (board: BoardState, player: Player): number | null => {
 export function findBestMove(board: BoardState, difficulty: number): number {
   const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null) as number[];
 
+  if (emptyCells.length === 0) return -1;
+
   if (Math.random() > difficulty / 10) {
     return emptyCells[Math.floor(Math.random() * emptyCells.length)];
   }
