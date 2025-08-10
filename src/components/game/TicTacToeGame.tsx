@@ -56,15 +56,20 @@ export default function TicTacToeGame() {
     setIsMounted(true);
     const html = document.documentElement;
     // cleanup previous theme
-    THEMES.forEach(t => html.classList.remove(t, `theme-${t}`));
-    html.classList.add(theme);
-    if (theme !== 'dark') {
-      html.classList.add(`theme-${theme}`);
+    THEMES.forEach(t => html.classList.remove(`theme-${t}`));
+    html.classList.remove('dark');
+    if(theme) {
+        if (theme === 'dark') {
+            html.classList.add('dark');
+        } else {
+            html.classList.add(`theme-${theme}`);
+        }
     }
     
     // cleanup on component unmount
     return () => {
-      THEMES.forEach(t => html.classList.remove(t, `theme-${t}`));
+      THEMES.forEach(t => html.classList.remove(`theme-${t}`));
+      html.classList.remove('dark');
       html.classList.add('dark'); // Revert to default
     };
   }, [theme]);
@@ -192,7 +197,7 @@ export default function TicTacToeGame() {
               }
             }
             setIsAiThinking(false);
-        }, 1500);
+        }, 500);
 
         return () => clearTimeout(timer);
     }
