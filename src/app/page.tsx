@@ -26,16 +26,14 @@ export default function Home() {
   useEffect(() => {
     const html = document.documentElement;
     // Set the theme on initial load
-    THEMES.forEach(t => {
-      html.classList.remove(`theme-${t}`);
-      html.classList.remove(t);
-    });
-    if (theme !== 'dark') {
-      html.classList.add(`theme-${theme}`);
-    } else {
+    html.classList.remove('dark', 'theme-jungle', 'theme-ocean', 'theme-space');
+    if (theme === 'dark') {
       html.classList.add('dark');
+    } else {
+      html.classList.add(`theme-${theme}`);
     }
   }, [theme]);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
