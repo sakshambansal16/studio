@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 const THEMES = ['dark', 'jungle', 'ocean', 'space'];
 
@@ -23,24 +25,22 @@ export default function Home() {
 
   useEffect(() => {
     const html = document.documentElement;
-    // Remove all theme classes
+    // Set the theme on initial load
     THEMES.forEach(t => {
-        html.classList.remove(`theme-${t}`)
-        html.classList.remove(t)
+      html.classList.remove(`theme-${t}`);
+      html.classList.remove(t);
     });
-    // Add the current theme class
-    if(theme !== 'dark') {
+    if (theme !== 'dark') {
       html.classList.add(`theme-${theme}`);
     } else {
       html.classList.add('dark');
     }
   }, [theme]);
 
-
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
       <div className="text-center mb-8 sm:mb-12">
-        <h1 className="font-headline text-5xl sm:text-7xl font-bold text-primary tracking-tight">
+        <h1 className={cn("font-headline text-5xl sm:text-7xl font-bold tracking-tight", theme === 'dark' ? 'text-primary' : 'text-primary-foreground')}>
           Tic Tac Toe
         </h1>
         <p className="text-muted-foreground mt-2 text-lg sm:text-xl">A vibrant and playful game for all ages.</p>
@@ -59,17 +59,17 @@ export default function Home() {
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <div className='space-y-2'>
-                <Label>Choose your side</Label>
-                <RadioGroup defaultValue="X" value={playerChoice} onValueChange={setPlayerChoice} className="flex gap-4">
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="X" id="player-x" />
-                    <Label htmlFor="player-x">Player X (Starts)</Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem value="O" id="player-o" />
-                    <Label htmlFor="player-o">Player O</Label>
-                  </div>
-                </RadioGroup>
+              <Label>Choose your side</Label>
+              <RadioGroup defaultValue="X" value={playerChoice} onValueChange={setPlayerChoice} className="flex gap-4">
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="X" id="player-x" />
+                  <Label htmlFor="player-x">Player X (Starts)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="O" id="player-o" />
+                  <Label htmlFor="player-o">Player O</Label>
+                </div>
+              </RadioGroup>
             </div>
             <div className="flex flex-col gap-3">
               <Link href={`/game?mode=single&age=Child&theme=${theme}&player=${playerChoice}`} passHref>
@@ -95,13 +95,14 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col items-center justify-center flex-grow">
+          <CardContent className="flex-grow flex flex-col justify-center">
             <Link href={`/game?mode=local&theme=${theme}`} passHref>
-              <Button className="w-full text-lg py-10" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
+              <Button className="w-full text-lg" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
             </Link>
           </CardContent>
         </Card>
       </div>
+
       <Card className="w-full max-w-4xl mt-8 shadow-lg bg-card">
         <CardHeader>
           <div className="flex items-center gap-4">
@@ -113,7 +114,7 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <Select defaultValue={theme} onValueChange={setTheme}>
+          <Select value={theme} onValueChange={setTheme}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>
