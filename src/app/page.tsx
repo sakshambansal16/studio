@@ -24,13 +24,15 @@ export default function Home() {
   useEffect(() => {
     const html = document.documentElement;
     // Remove all theme classes
-    THEMES.forEach(t => html.classList.remove(`theme-${t}`));
-    html.classList.remove('dark', 'jungle', 'ocean', 'space');
+    THEMES.forEach(t => {
+        html.classList.remove(`theme-${t}`)
+        html.classList.remove(t)
+    });
     // Add the current theme class
     if(theme !== 'dark') {
       html.classList.add(`theme-${theme}`);
     } else {
-      html.classList.add(theme);
+      html.classList.add('dark');
     }
   }, [theme]);
 
