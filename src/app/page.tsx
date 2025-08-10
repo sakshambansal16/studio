@@ -11,10 +11,14 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from '@/components/ui/label';
 
 export default function Home() {
   const [theme, setTheme] = useState('jungle');
+  const [playerChoice, setPlayerChoice] = useState('X');
+
 
   useEffect(() => {
     // Remove other theme classes
@@ -44,16 +48,31 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex flex-col gap-3">
-            <Link href={`/game?mode=single&age=Child&theme=${theme}`} passHref>
-              <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
-            </Link>
-            <Link href={`/game?mode=single&age=Teen&theme=${theme}`} passHref>
-              <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
-            </Link>
-            <Link href={`/game?mode=single&age=Adult&theme=${theme}`} passHref>
-              <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
-            </Link>
+          <CardContent className="flex flex-col gap-4">
+            <div className='space-y-2'>
+                <Label>Choose your side</Label>
+                <RadioGroup defaultValue="X" value={playerChoice} onValueChange={setPlayerChoice} className="flex gap-4">
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="X" id="player-x" />
+                    <Label htmlFor="player-x">Player X (Starts)</Label>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="O" id="player-o" />
+                    <Label htmlFor="player-o">Player O</Label>
+                  </div>
+                </RadioGroup>
+            </div>
+            <div className="flex flex-col gap-3">
+              <Link href={`/game?mode=single&age=Child&theme=${theme}&player=${playerChoice}`} passHref>
+                <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
+              </Link>
+              <Link href={`/game?mode=single&age=Teen&theme=${theme}&player=${playerChoice}`} passHref>
+                <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
+              </Link>
+              <Link href={`/game?mode=single&age=Adult&theme=${theme}&player=${playerChoice}`} passHref>
+                <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
+              </Link>
+            </div>
           </CardContent>
         </Card>
 

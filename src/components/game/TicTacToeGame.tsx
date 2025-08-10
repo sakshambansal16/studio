@@ -31,7 +31,7 @@ export default function TicTacToeGame() {
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
   const theme = useMemo(() => searchParams.get('theme') || 'jungle', [searchParams]);
-
+  const humanPlayer = useMemo(() => (searchParams.get('player') as Player) || 'X', [searchParams]);
 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState<boolean>(true);
@@ -44,6 +44,13 @@ export default function TicTacToeGame() {
   const [aiCommentary, setAiCommentary] = useState<string>('');
   const [isCommentaryLoading, setIsCommentaryLoading] = useState(false);
 
+  const aiPlayer = useMemo(() => (humanPlayer === 'X' ? 'O' : 'X'), [humanPlayer]);
+  const winner = useMemo(() => (winnerInfo === 'Draw' ? 'Draw' : winnerInfo?.winner ?? null), [winnerInfo]);
+  const winningLine = useMemo(() => (winnerInfo === 'Draw' ? null : winnerInfo?.line ?? null), [winnerInfo]);
+  const currentPlayer = isXNext ? 'X' : 'O';
+  const isBoardDisabled = !!winner || isAiThinking || (gameMode === 'single' && currentPlayer !== humanPlayer);
+
+
   useEffect(() => {
     setIsMounted(true);
     // cleanup previous theme
@@ -55,11 +62,6 @@ export default function TicTacToeGame() {
       document.body.classList.remove(`theme-${theme}`);
     };
   }, [theme]);
-
-  const winner = useMemo(() => (winnerInfo === 'Draw' ? 'Draw' : winnerInfo?.winner ?? null), [winnerInfo]);
-  const winningLine = useMemo(() => (winnerInfo === 'Draw' ? null : winnerInfo?.line ?? null), [winnerInfo]);
-  const currentPlayer = isXNext ? 'X' : 'O';
-  const isBoardDisabled = !!winner || isAiThinking;
 
   const statsKey = useMemo(() => {
     if (!gameMode) return null;
@@ -87,6 +89,9 @@ export default function TicTacToeGame() {
 
   const fetchCommentary = useCallback(async (currentBoard: BoardState, player: Player, gameWinner: Player | 'Draw' | null) => {
     if (!gameMode) return;
+    // Don't fetch commentary on AI's first move if human is O
+    if(humanPlayer === 'O' && currentBoard.every(c => c === null)) return;
+
     setIsCommentaryLoading(true);
     try {
       const result = await getAICommentary({
@@ -103,7 +108,7 @@ export default function TicTacToeGame() {
     } finally {
       setIsCommentaryLoading(false);
     }
-  }, [gameMode, ageMode]);
+  }, [gameMode, ageMode, humanPlayer]);
 
 
   useEffect(() => {
@@ -142,7 +147,7 @@ export default function TicTacToeGame() {
   }, [gameMode, ageMode, aiDifficulty]);
   
   const handleCellClick = useCallback((index: number) => {
-    if (winnerInfo || board[index]) {
+    if (winnerInfo || board[index] || (gameMode === 'single' && currentPlayer !== humanPlayer)) {
         return;
     }
 
@@ -155,27 +160,37 @@ export default function TicTacToeGame() {
       setWinnerInfo(newWinnerInfo);
     } else {
       setIsXNext(prev => !prev);
-      if (gameMode !== 'single' || currentPlayer === 'O') {
-        fetchCommentary(newBoard, !isXNext ? 'X' : 'O', null);
+      // Fetch commentary for human moves
+      if (gameMode !== 'single' || currentPlayer === humanPlayer) {
+          fetchCommentary(newBoard, !isXNext ? 'X' : 'O', null);
       }
     }
-  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext]);
+  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext, humanPlayer]);
 
   useEffect(() => {
-    if (gameMode === 'single' && currentPlayer === 'O' && !winner && aiDifficulty !== null) {
+    if (gameMode === 'single' && currentPlayer === aiPlayer && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
-        fetchCommentary(board, 'X', null);
+        fetchCommentary(board, humanPlayer, null);
         const timer = setTimeout(() => {
-            const move = findBestMove(board, aiDifficulty);
+            const move = findBestMove(board, aiDifficulty, aiPlayer);
             if (move !== -1) {
-              handleCellClick(move);
+              const newBoard = [...board];
+              newBoard[move] = aiPlayer;
+              setBoard(newBoard);
+
+              const newWinnerInfo = checkWinner(newBoard);
+               if (newWinnerInfo) {
+                setWinnerInfo(newWinnerInfo);
+              } else {
+                setIsXNext(prev => !prev);
+              }
             }
             setIsAiThinking(false);
         }, 1500);
 
         return () => clearTimeout(timer);
     }
-  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary]);
+  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary, aiPlayer, humanPlayer]);
   
   if (!isMounted || !gameMode) {
       return (

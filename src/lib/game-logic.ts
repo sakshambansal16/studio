@@ -33,31 +33,39 @@ const findMove = (board: BoardState, player: Player): number | null => {
   return null;
 }
 
-export function findBestMove(board: BoardState, difficulty: number): number {
+export function findBestMove(board: BoardState, difficulty: number, aiPlayer: Player): number {
+  const humanPlayer = aiPlayer === 'X' ? 'O' : 'X';
   const emptyCells = board.map((cell, index) => cell === null ? index : null).filter(val => val !== null) as number[];
 
   if (emptyCells.length === 0) return -1;
 
+  // Difficulty check: Lower difficulty means higher chance of a random move
   if (Math.random() > difficulty / 10) {
     return emptyCells[Math.floor(Math.random() * emptyCells.length)];
   }
   
-  const winningMove = findMove(board, 'O');
+  // 1. Check for a winning move for the AI
+  const winningMove = findMove(board, aiPlayer);
   if (winningMove !== null) return winningMove;
   
-  const blockingMove = findMove(board, 'X');
+  // 2. Check for a blocking move against the human
+  const blockingMove = findMove(board, humanPlayer);
   if (blockingMove !== null) return blockingMove;
 
+  // 3. Take the center if it's available
   if (emptyCells.includes(4)) return 4;
   
+  // 4. Block opponent's fork opportunity (simplified)
   const corners = { '0': 8, '2': 6, '6': 2, '8': 0 };
   for(const corner in corners){
-    if(board[parseInt(corner)] === 'X' && emptyCells.includes(corners[corner as keyof typeof corners]))
+    if(board[parseInt(corner)] === humanPlayer && emptyCells.includes(corners[corner as keyof typeof corners]))
       return corners[corner as keyof typeof corners];
   }
   
+  // 5. Take an empty corner
   const emptyCorners = [0, 2, 6, 8].filter(i => emptyCells.includes(i));
   if (emptyCorners.length > 0) return emptyCorners[Math.floor(Math.random() * emptyCorners.length)];
 
+  // 6. Take any remaining empty cell
   return emptyCells[Math.floor(Math.random() * emptyCells.length)];
 }
