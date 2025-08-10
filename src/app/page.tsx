@@ -15,23 +15,30 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 
+const THEMES = ['dark', 'jungle', 'ocean', 'space'];
+
 export default function Home() {
-  const [theme, setTheme] = useState('jungle');
+  const [theme, setTheme] = useState('dark');
   const [playerChoice, setPlayerChoice] = useState('X');
 
-
   useEffect(() => {
-    // Remove other theme classes
-    document.body.classList.remove('theme-jungle', 'theme-ocean', 'theme-space');
+    const html = document.documentElement;
+    // Remove all theme classes
+    THEMES.forEach(t => html.classList.remove(`theme-${t}`));
+    html.classList.remove('dark', 'jungle', 'ocean', 'space');
     // Add the current theme class
-    document.body.classList.add(`theme-${theme}`);
+    if(theme !== 'dark') {
+      html.classList.add(`theme-${theme}`);
+    } else {
+      html.classList.add(theme);
+    }
   }, [theme]);
 
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
       <div className="text-center mb-8 sm:mb-12">
-        <h1 className="font-headline text-5xl sm:text-7xl font-bold text-primary-foreground tracking-tight">
+        <h1 className="font-headline text-5xl sm:text-7xl font-bold text-primary tracking-tight">
           Tic Tac Toe
         </h1>
         <p className="text-muted-foreground mt-2 text-lg sm:text-xl">A vibrant and playful game for all ages.</p>
@@ -109,6 +116,7 @@ export default function Home() {
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>
             <SelectContent>
+              <SelectItem value="dark">Dark</SelectItem>
               <SelectItem value="jungle">Jungle</SelectItem>
               <SelectItem value="ocean">Ocean</SelectItem>
               <SelectItem value="space">Space</SelectItem>

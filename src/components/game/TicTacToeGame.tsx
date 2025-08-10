@@ -26,11 +26,13 @@ import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
 
+const THEMES = ['dark', 'jungle', 'ocean', 'space'];
+
 export default function TicTacToeGame() {
   const searchParams = useSearchParams();
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
-  const theme = useMemo(() => searchParams.get('theme') || 'jungle', [searchParams]);
+  const theme = useMemo(() => searchParams.get('theme') || 'dark', [searchParams]);
   const humanPlayer = useMemo(() => (searchParams.get('player') as Player) || 'X', [searchParams]);
 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
@@ -52,13 +54,18 @@ export default function TicTacToeGame() {
 
   useEffect(() => {
     setIsMounted(true);
+    const html = document.documentElement;
     // cleanup previous theme
-    document.body.classList.remove('theme-jungle', 'theme-ocean', 'theme-space');
-    document.body.classList.add(`theme-${theme}`);
+    THEMES.forEach(t => html.classList.remove(t, `theme-${t}`));
+    html.classList.add(theme);
+    if (theme !== 'dark') {
+      html.classList.add(`theme-${theme}`);
+    }
     
     // cleanup on component unmount
     return () => {
-      document.body.classList.remove(`theme-${theme}`);
+      THEMES.forEach(t => html.classList.remove(t, `theme-${t}`));
+      html.classList.add('dark'); // Revert to default
     };
   }, [theme]);
 
