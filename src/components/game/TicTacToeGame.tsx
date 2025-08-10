@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, RotateCw } from 'lucide-react';
+import { ArrowLeft, RotateCw, MessageCircle } from 'lucide-react';
 
 import { adjustDifficulty } from '@/ai/flows/ai-opponent-difficulty';
+import { getAICommentary } from '@/ai/flows/ai-commentary';
 import { Button } from '@/components/ui/button';
 import {
   AlertDialog,
@@ -23,6 +24,7 @@ import GameStats from './GameStats';
 import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '../ui/skeleton';
 
 export default function TicTacToeGame() {
   const searchParams = useSearchParams();
@@ -39,6 +41,8 @@ export default function TicTacToeGame() {
   const [isAiThinking, setIsAiThinking] = useState(false);
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
+  const [aiCommentary, setAiCommentary] = useState<string>('');
+  const [isCommentaryLoading, setIsCommentaryLoading] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -78,11 +82,34 @@ export default function TicTacToeGame() {
     setIsXNext(true);
     setWinnerInfo(null);
     setShowWinnerDialog(false);
+    setAiCommentary('');
   }, []);
+
+  const fetchCommentary = useCallback(async (currentBoard: BoardState, player: Player, gameWinner: Player | 'Draw' | null) => {
+    if (!gameMode) return;
+    setIsCommentaryLoading(true);
+    try {
+      const result = await getAICommentary({
+        board: currentBoard,
+        currentPlayer: player,
+        winner: gameWinner,
+        gameMode: gameMode,
+        ageMode: ageMode,
+      });
+      setAiCommentary(result.commentary);
+    } catch (error) {
+      console.error('Failed to get AI commentary:', error);
+      setAiCommentary("I'm speechless!");
+    } finally {
+      setIsCommentaryLoading(false);
+    }
+  }, [gameMode, ageMode]);
+
 
   useEffect(() => {
     if (winner && statsKey) {
       setShowWinnerDialog(true);
+      fetchCommentary(board, currentPlayer, winner);
       setStats(currentStats => {
         const newStats = { ...currentStats };
         if (winner === 'X') newStats.X += 1;
@@ -97,7 +124,7 @@ export default function TicTacToeGame() {
         return newStats;
       });
     }
-  }, [winner, statsKey, isMounted]);
+  }, [winner, statsKey, isMounted, board, currentPlayer, fetchCommentary]);
 
   useEffect(() => {
     if (gameMode === 'single' && ageMode && aiDifficulty === null) {
@@ -128,23 +155,27 @@ export default function TicTacToeGame() {
       setWinnerInfo(newWinnerInfo);
     } else {
       setIsXNext(prev => !prev);
+      if (gameMode !== 'single' || currentPlayer === 'O') {
+        fetchCommentary(newBoard, !isXNext ? 'X' : 'O', null);
+      }
     }
-  }, [board, currentPlayer, winnerInfo]);
+  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext]);
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === 'O' && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
+        fetchCommentary(board, 'X', null);
         const timer = setTimeout(() => {
             const move = findBestMove(board, aiDifficulty);
             if (move !== -1) {
               handleCellClick(move);
             }
             setIsAiThinking(false);
-        }, 1000);
+        }, 1500);
 
         return () => clearTimeout(timer);
     }
-  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick]);
+  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary]);
   
   if (!isMounted || !gameMode) {
       return (
@@ -161,8 +192,21 @@ export default function TicTacToeGame() {
     <main className={cn("flex min-h-screen flex-col items-center justify-center bg-background p-4 space-y-6")}>
       <div className="flex flex-col items-center space-y-4 w-full max-w-md">
         <GameStatus winner={winner} currentPlayer={currentPlayer} gameMode={gameMode} ageMode={ageMode} isAiThinking={isAiThinking} aiDifficulty={aiDifficulty} />
-        <GameBoard board={board} onCellClick={handleCellClick} winningLine={winningLine} isBoardDisabled={isBoardDisabled} />
-        <div className="flex items-center justify-between w-full">
+        
+        <div className="relative w-full max-w-md">
+            <GameBoard board={board} onCellClick={handleCellClick} winningLine={winningLine} isBoardDisabled={isBoardDisabled} />
+            {(aiCommentary || isCommentaryLoading) && (
+              <div className="absolute -bottom-14 left-0 right-0 flex justify-center">
+                  <div className="flex items-center gap-2 rounded-full bg-card px-4 py-2 shadow-lg text-sm text-card-foreground border border-border">
+                      <MessageCircle className="h-5 w-5 text-accent flex-shrink-0" />
+                      {isCommentaryLoading ? <Skeleton className="h-5 w-32" /> : <p className="italic">"{aiCommentary}"</p>}
+                  </div>
+              </div>
+            )}
+        </div>
+
+
+        <div className="flex items-center justify-between w-full pt-8">
             <Link href="/" passHref>
                 <Button variant="outline"><ArrowLeft className="mr-2 h-4 w-4"/> New Game</Button>
             </Link>
