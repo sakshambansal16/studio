@@ -22,11 +22,14 @@ import GameStatus from './GameStatus';
 import GameStats from './GameStats';
 import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
+import { cn } from '@/lib/utils';
 
 export default function TicTacToeGame() {
   const searchParams = useSearchParams();
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
+  const theme = useMemo(() => searchParams.get('theme') || 'jungle', [searchParams]);
+
 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState<boolean>(true);
@@ -37,7 +40,13 @@ export default function TicTacToeGame() {
   const [showWinnerDialog, setShowWinnerDialog] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  useEffect(() => setIsMounted(true), []);
+  useEffect(() => {
+    setIsMounted(true);
+    document.body.classList.add(`theme-${theme}`);
+    return () => {
+      document.body.classList.remove(`theme-${theme}`);
+    };
+  }, [theme]);
 
   const winner = useMemo(() => (winnerInfo === 'Draw' ? 'Draw' : winnerInfo?.winner ?? null), [winnerInfo]);
   const winningLine = useMemo(() => (winnerInfo === 'Draw' ? null : winnerInfo?.line ?? null), [winnerInfo]);
@@ -143,7 +152,7 @@ export default function TicTacToeGame() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 space-y-6">
+    <main className={cn("flex min-h-screen flex-col items-center justify-center bg-background p-4 space-y-6", `theme-${theme}`)}>
       <div className="flex flex-col items-center space-y-4 w-full max-w-md">
         <GameStatus winner={winner} currentPlayer={currentPlayer} gameMode={gameMode} ageMode={ageMode} isAiThinking={isAiThinking} aiDifficulty={aiDifficulty} />
         <GameBoard board={board} onCellClick={handleCellClick} winningLine={winningLine} isBoardDisabled={isBoardDisabled} />

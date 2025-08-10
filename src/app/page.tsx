@@ -1,3 +1,6 @@
+'use client';
+
+import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Bot, Baby, GraduationCap, User, Palette } from "lucide-react";
@@ -11,6 +14,8 @@ import {
 } from "@/components/ui/select"
 
 export default function Home() {
+  const [theme, setTheme] = useState('jungle');
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
       <div className="text-center mb-8 sm:mb-12">
@@ -32,13 +37,13 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
-            <Link href="/game?mode=single&age=Child" passHref>
+            <Link href={`/game?mode=single&age=Child&theme=${theme}`} passHref>
               <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
             </Link>
-            <Link href="/game?mode=single&age=Teen" passHref>
+            <Link href={`/game?mode=single&age=Teen&theme=${theme}`} passHref>
               <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
             </Link>
-            <Link href="/game?mode=single&age=Adult" passHref>
+            <Link href={`/game?mode=single&age=Adult&theme=${theme}`} passHref>
               <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
             </Link>
           </CardContent>
@@ -55,7 +60,7 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex items-center justify-center h-full pt-0 pb-6">
-            <Link href="/game?mode=local" passHref>
+            <Link href={`/game?mode=local&theme=${theme}`} passHref>
               <Button className="w-full text-lg py-10" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
             </Link>
           </CardContent>
@@ -72,7 +77,7 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <Select defaultValue="jungle">
+          <Select defaultValue={theme} onValueChange={setTheme}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>
