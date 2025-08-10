@@ -115,7 +115,7 @@ export default function TicTacToeGame() {
   }, [gameMode, ageMode, aiDifficulty]);
   
   const handleCellClick = useCallback((index: number) => {
-    if (isBoardDisabled || board[index] || (gameMode === 'single' && currentPlayer === 'O')) {
+    if (isBoardDisabled || board[index]) {
         return;
     }
 
@@ -129,7 +129,7 @@ export default function TicTacToeGame() {
     } else {
       setIsXNext(prev => !prev);
     }
-  }, [board, currentPlayer, isBoardDisabled, gameMode]);
+  }, [board, currentPlayer, isBoardDisabled]);
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === 'O' && !winner && aiDifficulty !== null) {
