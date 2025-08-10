@@ -1,3 +1,59 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Users, Bot, Baby, GraduationCap, User } from "lucide-react";
+import Link from "next/link";
+
 export default function Home() {
-  return <></>;
+  return (
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
+      <div className="text-center mb-8 sm:mb-12">
+        <h1 className="font-headline text-5xl sm:text-7xl font-bold text-primary-foreground tracking-tight">
+          Tic-Toc-Toe
+        </h1>
+        <p className="text-muted-foreground mt-2 text-lg sm:text-xl">A vibrant and playful game for all ages.</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 max-w-4xl w-full">
+        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <Bot className="w-10 h-10 text-accent" />
+              <div>
+                <CardTitle className="font-headline text-2xl">Single Player</CardTitle>
+                <CardDescription>Challenge our adaptive AI</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-3">
+            <Link href="/game?mode=single&age=Child" passHref>
+              <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
+            </Link>
+            <Link href="/game?mode=single&age=Teen" passHref>
+              <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
+            </Link>
+            <Link href="/game?mode=single&age=Adult" passHref>
+              <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
+          <CardHeader>
+            <div className="flex items-center gap-4">
+              <Users className="w-10 h-10 text-accent" />
+              <div>
+                <CardTitle className="font-headline text-2xl">Local Multiplayer</CardTitle>
+                <CardDescription>Play against a friend</CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="flex items-center justify-center h-full pt-0 pb-6">
+            <Link href="/game?mode=local" passHref>
+              <Button className="w-full text-lg py-10" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  );
 }
