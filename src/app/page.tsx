@@ -76,7 +76,7 @@ export default function Home() {
           </CardContent>
         </Card>
 
-        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card">
+        <Card className="w-full shadow-lg hover:shadow-xl transition-shadow duration-300 bg-card flex flex-col">
           <CardHeader>
             <div className="flex items-center gap-4">
               <Users className="w-10 h-10 text-accent" />
@@ -86,7 +86,7 @@ export default function Home() {
               </div>
             </div>
           </CardHeader>
-          <CardContent className="flex items-center justify-center h-full pt-0 pb-6">
+          <CardContent className="flex flex-col items-center justify-center flex-grow">
             <Link href={`/game?mode=local&theme=${theme}`} passHref>
               <Button className="w-full text-lg py-10" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
             </Link>
