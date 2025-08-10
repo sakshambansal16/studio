@@ -25,6 +25,7 @@ import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
+import { useSound } from '@/hooks/use-sound';
 
 export default function TicTacToeGame() {
   const searchParams = useSearchParams();
@@ -50,6 +51,9 @@ export default function TicTacToeGame() {
   const currentPlayer = isXNext ? 'X' : 'O';
   const isBoardDisabled = !!winner || isAiThinking || (gameMode === 'single' && currentPlayer !== humanPlayer);
 
+  const playPlaceSound = useSound('place');
+  const playWinSound = useSound('win');
+  const playDrawSound = useSound('draw');
 
   useEffect(() => {
     setIsMounted(true);
@@ -114,6 +118,11 @@ export default function TicTacToeGame() {
   useEffect(() => {
     if (winner && statsKey) {
       setShowWinnerDialog(true);
+      if (winner === 'Draw') {
+        playDrawSound();
+      } else {
+        playWinSound();
+      }
       fetchCommentary(board, currentPlayer, winner);
       setStats(currentStats => {
         const newStats = { ...currentStats };
@@ -129,7 +138,7 @@ export default function TicTacToeGame() {
         return newStats;
       });
     }
-  }, [winner, statsKey, isMounted, board, currentPlayer, fetchCommentary]);
+  }, [winner, statsKey, isMounted, board, currentPlayer, fetchCommentary, playWinSound, playDrawSound]);
 
   useEffect(() => {
     if (gameMode === 'single' && ageMode && aiDifficulty === null) {
@@ -151,6 +160,7 @@ export default function TicTacToeGame() {
         return;
     }
 
+    playPlaceSound();
     const newBoard = [...board];
     newBoard[index] = currentPlayer;
     setBoard(newBoard);
@@ -165,7 +175,7 @@ export default function TicTacToeGame() {
           fetchCommentary(newBoard, !isXNext ? 'X' : 'O', null);
       }
     }
-  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext, humanPlayer]);
+  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext, humanPlayer, playPlaceSound]);
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === aiPlayer && !winner && aiDifficulty !== null) {
@@ -174,6 +184,7 @@ export default function TicTacToeGame() {
         const timer = setTimeout(() => {
             const move = findBestMove(board, aiDifficulty, aiPlayer);
             if (move !== -1) {
+              playPlaceSound();
               const newBoard = [...board];
               newBoard[move] = aiPlayer;
               setBoard(newBoard);
@@ -190,7 +201,7 @@ export default function TicTacToeGame() {
 
         return () => clearTimeout(timer);
     }
-  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary, aiPlayer, humanPlayer]);
+  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary, aiPlayer, humanPlayer, playPlaceSound]);
   
   if (!isMounted || !gameMode) {
       return (
