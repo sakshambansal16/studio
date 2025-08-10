@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Bot, Baby, GraduationCap, User, Palette } from "lucide-react";
@@ -15,6 +15,14 @@ import {
 
 export default function Home() {
   const [theme, setTheme] = useState('jungle');
+
+  useEffect(() => {
+    // Remove other theme classes
+    document.body.classList.remove('theme-jungle', 'theme-ocean', 'theme-space');
+    // Add the current theme class
+    document.body.classList.add(`theme-${theme}`);
+  }, [theme]);
+
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">

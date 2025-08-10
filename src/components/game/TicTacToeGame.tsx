@@ -42,7 +42,11 @@ export default function TicTacToeGame() {
 
   useEffect(() => {
     setIsMounted(true);
+    // cleanup previous theme
+    document.body.classList.remove('theme-jungle', 'theme-ocean', 'theme-space');
     document.body.classList.add(`theme-${theme}`);
+    
+    // cleanup on component unmount
     return () => {
       document.body.classList.remove(`theme-${theme}`);
     };
@@ -152,7 +156,7 @@ export default function TicTacToeGame() {
   }
 
   return (
-    <main className={cn("flex min-h-screen flex-col items-center justify-center bg-background p-4 space-y-6", `theme-${theme}`)}>
+    <main className={cn("flex min-h-screen flex-col items-center justify-center bg-background p-4 space-y-6")}>
       <div className="flex flex-col items-center space-y-4 w-full max-w-md">
         <GameStatus winner={winner} currentPlayer={currentPlayer} gameMode={gameMode} ageMode={ageMode} isAiThinking={isAiThinking} aiDifficulty={aiDifficulty} />
         <GameBoard board={board} onCellClick={handleCellClick} winningLine={winningLine} isBoardDisabled={isBoardDisabled} />
