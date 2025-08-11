@@ -71,10 +71,10 @@ export default function PhoneSignUpForm() {
         description: error.message,
       });
       // Reset reCAPTCHA if it fails
-      if(window.recaptchaVerifier) {
+      if(window.recaptchaVerifier && (window as any).grecaptcha) {
         window.recaptchaVerifier.render().then((widgetId) => {
-            if (typeof grecaptcha !== 'undefined') {
-                 grecaptcha.reset(widgetId);
+            if (typeof (window as any).grecaptcha !== 'undefined') {
+                 (window as any).grecaptcha.reset(widgetId);
             }
         });
       }
