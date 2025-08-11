@@ -26,7 +26,6 @@ export default function PhoneSignUpForm() {
   const { toast } = useToast();
   const recaptchaContainerRef = useRef<HTMLDivElement>(null);
 
-
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
     defaultValues: { phone: "" },
@@ -38,48 +37,40 @@ export default function PhoneSignUpForm() {
   });
 
   useEffect(() => {
-    // Cleanup any existing verifier
-    if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
-        window.recaptchaVerifier.clear();
-    }
-  }, []);
-
-  const setupRecaptcha = () => {
     if (!recaptchaContainerRef.current) return;
-    
-    // Clear previous instance if it exists
-     if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
-        window.recaptchaVerifier.clear();
-     }
-    
-     // Ensure the container is empty
-     recaptchaContainerRef.current.innerHTML = "";
-     const newRecaptchaContainer = document.createElement('div');
-     recaptchaContainerRef.current.appendChild(newRecaptchaContainer);
 
     try {
-       window.recaptchaVerifier = new RecaptchaVerifier(auth, newRecaptchaContainer, {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, you can proceed with sign-in.
-        },
-        'expired-callback': () => {
-          // Response expired. Ask user to solve reCAPTCHA again.
-          toast({
-              variant: "destructive",
-              title: "reCAPTCHA Expired",
-              description: "Please try sending the code again.",
-          });
-        }
-      });
-    } catch(error) {
+        const verifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+            'size': 'invisible',
+            'callback': (response: any) => {
+                // reCAPTCHA solved, you can proceed with sign-in.
+            },
+            'expired-callback': () => {
+                toast({
+                    variant: "destructive",
+                    title: "reCAPTCHA Expired",
+                    description: "Please try sending the code again.",
+                });
+            }
+        });
+        window.recaptchaVerifier = verifier;
+    } catch (error) {
         console.error("Error creating RecaptchaVerifier", error);
+        toast({
+            variant: "destructive",
+            title: "reCAPTCHA Error",
+            description: "Could not initialize reCAPTCHA. Please refresh the page.",
+        });
     }
-  }
+
+    return () => {
+        window.recaptchaVerifier?.clear();
+    };
+  }, [toast]);
+
 
   async function onSendCode(values: z.infer<typeof phoneSchema>) {
     setLoading(true);
-    setupRecaptcha(); // Set up recaptcha right before sending code
     
     try {
       const verifier = window.recaptchaVerifier;

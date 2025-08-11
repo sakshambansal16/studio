@@ -18,30 +18,31 @@ const GoogleIcon = () => (
 
 
 export default function GoogleSignInButton() {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true); // Start with loading true
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
   // Handle redirect result on component mount
   useEffect(() => {
-    const handleRedirect = async () => {
+    const handleRedirectResult = async () => {
       try {
-        setLoading(true);
         const result = await getRedirectResult(auth);
-        if (result) {
-          // User signed in. Redirect is handled by AuthProvider.
-        }
+        // If result is not null, the user has just signed in via redirect.
+        // The AuthProvider will handle the redirect to the main page.
+        // If result is null, it means the user has not just returned from a redirect flow.
       } catch (error: any) {
+        console.error("Google Sign-In Redirect Error:", error);
         toast({
           variant: "destructive",
           title: "Google Sign-In Failed",
           description: error.message,
         });
       } finally {
-        setLoading(false);
+        setLoading(false); // Stop loading once checked
       }
     };
-    handleRedirect();
+    
+    handleRedirectResult();
   }, [toast]);
 
   const handleSignIn = async () => {
@@ -51,10 +52,12 @@ export default function GoogleSignInButton() {
       if (isMobile) {
         // Redirect is better for mobile environments
         await signInWithRedirect(auth, provider);
+        // The page will reload, and the useEffect above will handle the result.
       } else {
         // Popup is better for desktop
         await signInWithPopup(auth, provider);
-        // Redirect handled by AuthProvider
+        // Redirect after successful popup login will be handled by AuthProvider
+        setLoading(false);
       }
     } catch (error: any) {
       toast({
@@ -64,7 +67,6 @@ export default function GoogleSignInButton() {
       });
       setLoading(false);
     } 
-    // Don't setLoading(false) here for redirect flow, as the page will reload.
   };
 
   return (
