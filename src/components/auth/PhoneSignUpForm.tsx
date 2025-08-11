@@ -20,7 +20,6 @@ const codeSchema = z.object({
   code: z.string().length(6, { message: "Verification code must be 6 digits." }),
 });
 
-// Add this to your global types or in a separate .d.ts file
 declare global {
   interface Window {
     recaptchaVerifier?: RecaptchaVerifier;
@@ -44,61 +43,77 @@ export default function PhoneSignUpForm() {
     defaultValues: { code: "" },
   });
 
-  useEffect(() => {
-    if (!recaptchaContainerRef.current || window.recaptchaVerifier) return;
-    
+  const setupRecaptcha = () => {
+    if (window.recaptchaVerifier) {
+      window.recaptchaVerifier.clear();
+    }
+    if (!recaptchaContainerRef.current) return;
+
     try {
-      const verifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-        'size': 'invisible',
-        'callback': (response: any) => {
-          // reCAPTCHA solved, you can proceed with sign-in.
-        },
-        'expired-callback': () => {
-          toast({
-              variant: "destructive",
-              title: "reCAPTCHA Expired",
-              description: "Please try sending the code again.",
-          });
-          window.recaptchaVerifier?.clear();
-          setLoading(false);
-        }
-      });
-      window.recaptchaVerifier = verifier;
-    } catch (error) {
-        console.error("Error creating RecaptchaVerifier", error);
+        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+            'size': 'invisible',
+            'callback': (response: any) => {
+                // reCAPTCHA solved, onSendCode will be called.
+            },
+            'expired-callback': () => {
+                toast({
+                    variant: "destructive",
+                    title: "reCAPTCHA Expired",
+                    description: "Please try sending the code again.",
+                });
+                setLoading(false);
+            }
+        });
+    } catch(error: any) {
+        console.error("reCAPTCHA setup error", error);
         toast({
             variant: "destructive",
-            title: "reCAPTCHA Error",
-            description: "Could not initialize reCAPTCHA. Please refresh the page and try again.",
+            title: "Could not start reCAPTCHA",
+            description: "Please check your internet connection and Firebase setup.",
         });
     }
-  }, [toast]);
+  }
+
+  useEffect(() => {
+    setupRecaptcha();
+    // Cleanup on unmount
+    return () => {
+        if (window.recaptchaVerifier) {
+            window.recaptchaVerifier.clear();
+        }
+    }
+  }, []);
 
 
   async function onSendCode(values: z.infer<typeof phoneSchema>) {
     setLoading(true);
     
+    if (!window.recaptchaVerifier) {
+      toast({
+        variant: "destructive",
+        title: "reCAPTCHA Error",
+        description: "Verifier not initialized. Please refresh and try again.",
+      });
+      setLoading(false);
+      return;
+    }
+
     try {
-      const verifier = window.recaptchaVerifier;
-      if (verifier) {
-        const confirmationResult = await signInWithPhoneNumber(auth, values.phone, verifier);
-        window.confirmationResult = confirmationResult;
-        setIsCodeSent(true);
-        toast({
-          title: "Verification Code Sent",
-          description: `A code has been sent to ${values.phone}.`,
-        });
-      } else {
-        throw new Error("reCAPTCHA verifier not initialized. Please try again.");
-      }
+      const confirmationResult = await signInWithPhoneNumber(auth, values.phone, window.recaptchaVerifier);
+      window.confirmationResult = confirmationResult;
+      setIsCodeSent(true);
+      toast({
+        title: "Verification Code Sent",
+        description: `A code has been sent to ${values.phone}.`,
+      });
     } catch (error: any) {
       console.error("Phone auth error:", error);
       toast({
         variant: "destructive",
         title: "Failed to Send Code",
-        description: error.message,
+        description: error.code === 'auth/invalid-phone-number' ? 'The phone number is not valid.' : 'An internal error occurred. Please check Firebase console settings.',
       });
-      window.recaptchaVerifier?.clear();
+      setupRecaptcha(); // Reset reCAPTCHA on error
     } finally {
       setLoading(false);
     }
@@ -125,6 +140,11 @@ export default function PhoneSignUpForm() {
     } finally {
       setLoading(false);
     }
+  }
+  
+  const handleBackToPhone = () => {
+    setIsCodeSent(false);
+    setupRecaptcha();
   }
 
   return (
@@ -172,7 +192,7 @@ export default function PhoneSignUpForm() {
               {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Verify and Sign In
             </Button>
-            <Button variant="link" size="sm" className="w-full" onClick={() => { setIsCodeSent(false); window.recaptchaVerifier?.clear() }}>
+            <Button variant="link" size="sm" className="w-full" onClick={handleBackToPhone}>
                 Use a different phone number
             </Button>
           </form>
