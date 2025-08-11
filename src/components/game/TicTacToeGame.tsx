@@ -25,12 +25,10 @@ import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
-import { useAuth } from '@/hooks/useAuth';
 
 const THEMES = ['dark', 'jungle', 'ocean', 'space'];
 
 export default function TicTacToeGame() {
-  const { user } = useAuth();
   const searchParams = useSearchParams();
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
@@ -77,10 +75,10 @@ export default function TicTacToeGame() {
   }, [theme]);
 
   const statsKey = useMemo(() => {
-    if (!gameMode || !user) return null;
-    const baseKey = `ttt_stats_uid_${user.uid}`;
+    if (!gameMode) return null;
+    const baseKey = `ttt_stats`;
     return gameMode === 'single' ? `${baseKey}_${ageMode}` : `${baseKey}_local`;
-  }, [gameMode, ageMode, user]);
+  }, [gameMode, ageMode]);
 
   useEffect(() => {
     if (isMounted && statsKey) {
