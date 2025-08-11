@@ -43,46 +43,45 @@ export default function PhoneSignUpForm() {
     defaultValues: { code: "" },
   });
 
-  const setupRecaptcha = () => {
-    if (window.recaptchaVerifier) {
-      window.recaptchaVerifier.clear();
-    }
-    if (!recaptchaContainerRef.current) return;
-
-    try {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
-            'size': 'invisible',
-            'callback': (response: any) => {
-                // reCAPTCHA solved, onSendCode will be called.
-            },
-            'expired-callback': () => {
-                toast({
-                    variant: "destructive",
-                    title: "reCAPTCHA Expired",
-                    description: "Please try sending the code again.",
-                });
-                setLoading(false);
-            }
-        });
-    } catch(error: any) {
-        console.error("reCAPTCHA setup error", error);
-        toast({
-            variant: "destructive",
-            title: "Could not start reCAPTCHA",
-            description: "Please check your internet connection and Firebase setup.",
-        });
-    }
-  }
-
   useEffect(() => {
+    if (isCodeSent) return;
+
+    const setupRecaptcha = () => {
+        if (window.recaptchaVerifier || !recaptchaContainerRef.current) return;
+        try {
+            window.recaptchaVerifier = new RecaptchaVerifier(auth, recaptchaContainerRef.current, {
+                'size': 'invisible',
+                'callback': (response: any) => {
+                    // reCAPTCHA solved.
+                },
+                'expired-callback': () => {
+                    toast({
+                        variant: "destructive",
+                        title: "reCAPTCHA Expired",
+                        description: "Please try sending the code again.",
+                    });
+                    setLoading(false);
+                }
+            });
+        } catch(error: any) {
+            console.error("reCAPTCHA setup error", error);
+            toast({
+                variant: "destructive",
+                title: "reCAPTCHA Error",
+                description: `Could not initialize reCAPTCHA. Please check your Firebase project's authorized domains. The error was: ${error.code}`,
+            });
+        }
+    };
+    
     setupRecaptcha();
-    // Cleanup on unmount
+
     return () => {
         if (window.recaptchaVerifier) {
             window.recaptchaVerifier.clear();
+            window.recaptchaVerifier = undefined;
         }
     }
-  }, []);
+  }, [isCodeSent, toast]);
 
 
   async function onSendCode(values: z.infer<typeof phoneSchema>) {
@@ -111,9 +110,9 @@ export default function PhoneSignUpForm() {
       toast({
         variant: "destructive",
         title: "Failed to Send Code",
-        description: error.code === 'auth/invalid-phone-number' ? 'The phone number is not valid.' : 'An internal error occurred. Please check Firebase console settings.',
+        description: `An error occurred: ${error.code}. Please ensure your Firebase project is configured correctly for phone auth and this domain is authorized.`,
       });
-      setupRecaptcha(); // Reset reCAPTCHA on error
+      // Don't reset reCAPTCHA here, let the useEffect handle it on back navigation.
     } finally {
       setLoading(false);
     }
@@ -144,7 +143,7 @@ export default function PhoneSignUpForm() {
   
   const handleBackToPhone = () => {
     setIsCodeSent(false);
-    setupRecaptcha();
+    // The useEffect will now re-run and set up reCAPTCHA again.
   }
 
   return (
