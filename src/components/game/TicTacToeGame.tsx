@@ -101,7 +101,7 @@ export default function TicTacToeGame() {
   const fetchCommentary = useCallback(async (currentBoard: BoardState, player: Player, gameWinner: Player | 'Draw' | null) => {
     if (!gameMode) return;
     // Don't fetch commentary on AI's first move if human is O
-    if(humanPlayer === 'O' && currentBoard.every(c => c === null)) return;
+    if(humanPlayer === 'O' && currentBoard.filter(c => c !== null).length === 0) return;
 
     setIsCommentaryLoading(true);
     try {
@@ -181,7 +181,7 @@ export default function TicTacToeGame() {
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === aiPlayer && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
-        fetchCommentary(board, humanPlayer, null);
+        // We removed fetchCommentary from here to reduce API calls.
         const timer = setTimeout(() => {
             const move = findBestMove(board, aiDifficulty, aiPlayer);
             if (move !== -1) {
@@ -197,11 +197,11 @@ export default function TicTacToeGame() {
               }
             }
             setIsAiThinking(false);
-        }, 500);
+        }, 100); // Reduced AI thinking time
 
         return () => clearTimeout(timer);
     }
-  }, [gameMode, currentPlayer, winner, aiDifficulty, board, handleCellClick, fetchCommentary, aiPlayer, humanPlayer]);
+  }, [gameMode, currentPlayer, winner, aiDifficulty, board, aiPlayer, humanPlayer]);
   
   if (!isMounted || !gameMode) {
       return (
