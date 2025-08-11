@@ -1,3 +1,4 @@
+
 // Import the functions you need from the SDKs you need
 import { initializeApp, getApps, getApp } from "firebase/app";
 import { getAuth } from "firebase/auth";
@@ -11,7 +12,6 @@ const firebaseConfig = {
   "storageBucket": "tic-toc-toe-y07lh.firebasestorage.app",
   "apiKey": "AIzaSyDkhy3GSMPoDHWkEDnJUAaeClPm1FVS3ME",
   "authDomain": "tic-toc-toe-y07lh.firebaseapp.com",
-  "measurementId": "",
   "messagingSenderId": "1002292262711"
 };
 
