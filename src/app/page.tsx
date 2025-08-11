@@ -100,13 +100,13 @@ export default function Home() {
           </DropdownMenu>
         ) : (
           <Link href="/auth" passHref>
-            <Button><LogIn className="mr-2" />Login</Button>
+            <Button><LogIn className="mr-2 h-4 w-4" />Login</Button>
           </Link>
         )}
       </div>
 
       <div className="text-center mb-8 sm:mb-12">
-        <h1 className={cn("font-headline text-5xl sm:text-7xl font-bold tracking-tight", theme === 'dark' ? 'text-primary' : 'text-primary-foreground')}>
+        <h1 className={cn("text-5xl sm:text-7xl font-bold tracking-tight text-primary")}>
           Tic Tac Toe
         </h1>
         <p className="text-muted-foreground mt-2 text-lg sm:text-xl">A vibrant and playful game for all ages.</p>
@@ -118,7 +118,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Bot className="w-10 h-10 text-accent" />
               <div>
-                <CardTitle className="font-headline text-2xl">Single Player</CardTitle>
+                <CardTitle className="text-2xl">Single Player</CardTitle>
                 <CardDescription>Challenge our adaptive AI</CardDescription>
               </div>
             </div>
@@ -156,7 +156,7 @@ export default function Home() {
             <div className="flex items-center gap-4">
               <Users className="w-10 h-10 text-accent" />
               <div>
-                <CardTitle className="font-headline text-2xl">Local Multiplayer</CardTitle>
+                <CardTitle className="text-2xl">Local Multiplayer</CardTitle>
                 <CardDescription>Play against a friend</CardDescription>
               </div>
             </div>
@@ -174,7 +174,7 @@ export default function Home() {
           <div className="flex items-center gap-4">
             <Palette className="w-8 h-8 text-accent" />
             <div>
-              <CardTitle className="font-headline text-2xl">Theme Selector</CardTitle>
+              <CardTitle className="text-2xl">Theme Selector</CardTitle>
               <CardDescription>Choose a fun theme for your game!</CardDescription>
             </div>
           </div>
