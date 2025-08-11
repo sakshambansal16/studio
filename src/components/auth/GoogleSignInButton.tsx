@@ -2,11 +2,13 @@
 'use client';
 
 import { useState } from 'react';
-import { GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
+import { GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { useEffect } from 'react';
 
 const GoogleIcon = () => (
   <svg className="mr-2 h-4 w-4" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 488 512">
@@ -18,22 +20,51 @@ const GoogleIcon = () => (
 export default function GoogleSignInButton() {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
+
+  // Handle redirect result on component mount
+  useEffect(() => {
+    const handleRedirect = async () => {
+      try {
+        setLoading(true);
+        const result = await getRedirectResult(auth);
+        if (result) {
+          // User signed in. Redirect is handled by AuthProvider.
+        }
+      } catch (error: any) {
+        toast({
+          variant: "destructive",
+          title: "Google Sign-In Failed",
+          description: error.message,
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+    handleRedirect();
+  }, [toast]);
 
   const handleSignIn = async () => {
     setLoading(true);
+    const provider = new GoogleAuthProvider();
     try {
-      const provider = new GoogleAuthProvider();
-      await signInWithPopup(auth, provider);
-      // Redirect handled by AuthProvider
+      if (isMobile) {
+        // Redirect is better for mobile environments
+        await signInWithRedirect(auth, provider);
+      } else {
+        // Popup is better for desktop
+        await signInWithPopup(auth, provider);
+        // Redirect handled by AuthProvider
+      }
     } catch (error: any) {
       toast({
         variant: "destructive",
         title: "Google Sign-In Failed",
         description: error.message,
       });
-    } finally {
       setLoading(false);
-    }
+    } 
+    // Don't setLoading(false) here for redirect flow, as the page will reload.
   };
 
   return (

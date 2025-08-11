@@ -1,6 +1,6 @@
 
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
@@ -24,6 +24,8 @@ export default function PhoneSignUpForm() {
   const [loading, setLoading] = useState(false);
   const [confirmationResult, setConfirmationResult] = useState<ConfirmationResult | null>(null);
   const { toast } = useToast();
+  const recaptchaContainerRef = useRef<HTMLDivElement>(null);
+
 
   const phoneForm = useForm<z.infer<typeof phoneSchema>>({
     resolver: zodResolver(phoneSchema),
@@ -36,22 +38,49 @@ export default function PhoneSignUpForm() {
   });
 
   useEffect(() => {
-    // This timeout ensures the div is in the DOM.
-    const timer = setTimeout(() => {
-      if (typeof window !== 'undefined' && !window.recaptchaVerifier) {
-        window.recaptchaVerifier = new RecaptchaVerifier(auth, 'recaptcha-container', {
-          'size': 'invisible',
-          'callback': (response: any) => {
-            // reCAPTCHA solved, allow signInWithPhoneNumber.
-          }
-        });
-      }
-    }, 100);
-    return () => clearTimeout(timer);
+    // Cleanup any existing verifier
+    if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
+        window.recaptchaVerifier.clear();
+    }
   }, []);
+
+  const setupRecaptcha = () => {
+    if (!recaptchaContainerRef.current) return;
+    
+    // Clear previous instance if it exists
+     if (window.recaptchaVerifier && typeof window.recaptchaVerifier.clear === 'function') {
+        window.recaptchaVerifier.clear();
+     }
+    
+     // Ensure the container is empty
+     recaptchaContainerRef.current.innerHTML = "";
+     const newRecaptchaContainer = document.createElement('div');
+     recaptchaContainerRef.current.appendChild(newRecaptchaContainer);
+
+    try {
+       window.recaptchaVerifier = new RecaptchaVerifier(auth, newRecaptchaContainer, {
+        'size': 'invisible',
+        'callback': (response: any) => {
+          // reCAPTCHA solved, you can proceed with sign-in.
+        },
+        'expired-callback': () => {
+          // Response expired. Ask user to solve reCAPTCHA again.
+          toast({
+              variant: "destructive",
+              title: "reCAPTCHA Expired",
+              description: "Please try sending the code again.",
+          });
+        }
+      });
+    } catch(error) {
+        console.error("Error creating RecaptchaVerifier", error);
+    }
+  }
 
   async function onSendCode(values: z.infer<typeof phoneSchema>) {
     setLoading(true);
+    setupRecaptcha(); // Set up recaptcha right before sending code
+    
     try {
       const verifier = window.recaptchaVerifier;
       if(verifier){
@@ -62,7 +91,7 @@ export default function PhoneSignUpForm() {
           description: `A code has been sent to ${values.phone}.`,
         });
       } else {
-        throw new Error("reCAPTCHA verifier not initialized.");
+        throw new Error("reCAPTCHA verifier not initialized. Please try again.");
       }
     } catch (error: any) {
       toast({
@@ -70,14 +99,7 @@ export default function PhoneSignUpForm() {
         title: "Failed to Send Code",
         description: error.message,
       });
-      // Reset reCAPTCHA if it fails
-      if(window.recaptchaVerifier && (window as any).grecaptcha) {
-        window.recaptchaVerifier.render().then((widgetId) => {
-            if (typeof (window as any).grecaptcha !== 'undefined') {
-                 (window as any).grecaptcha.reset(widgetId);
-            }
-        });
-      }
+      console.error("Phone auth error:", error);
     } finally {
       setLoading(false);
     }
@@ -102,7 +124,7 @@ export default function PhoneSignUpForm() {
 
   return (
     <>
-      <div id="recaptcha-container"></div>
+      <div ref={recaptchaContainerRef}></div>
       {!confirmationResult ? (
         <Form {...phoneForm}>
           <form onSubmit={phoneForm.handleSubmit(onSendCode)} className="space-y-4">
