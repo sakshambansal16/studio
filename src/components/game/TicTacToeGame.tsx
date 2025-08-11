@@ -25,10 +25,12 @@ import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
 
 const THEMES = ['dark', 'jungle', 'ocean', 'space'];
 
 export default function TicTacToeGame() {
+  const { user } = useAuth();
   const searchParams = useSearchParams();
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
@@ -75,9 +77,10 @@ export default function TicTacToeGame() {
   }, [theme]);
 
   const statsKey = useMemo(() => {
-    if (!gameMode) return null;
-    return gameMode === 'single' ? `ttt_stats_${ageMode}` : 'ttt_stats_local';
-  }, [gameMode, ageMode]);
+    if (!gameMode || !user) return null;
+    const baseKey = `ttt_stats_uid_${user.uid}`;
+    return gameMode === 'single' ? `${baseKey}_${ageMode}` : `${baseKey}_local`;
+  }, [gameMode, ageMode, user]);
 
   useEffect(() => {
     if (isMounted && statsKey) {
@@ -100,8 +103,10 @@ export default function TicTacToeGame() {
 
   const fetchCommentary = useCallback(async (currentBoard: BoardState, player: Player, gameWinner: Player | 'Draw' | null) => {
     if (!gameMode) return;
+    // Only fetch commentary for single player mode or after a game ends
+    if (gameMode !== 'single' && !gameWinner) return;
     // Don't fetch commentary on AI's first move if human is O
-    if(humanPlayer === 'O' && currentBoard.filter(c => c !== null).length === 0) return;
+    if(humanPlayer === 'O' && currentBoard.filter(c => c !== null).length === 1 && !gameWinner) return;
 
     setIsCommentaryLoading(true);
     try {
@@ -171,17 +176,12 @@ export default function TicTacToeGame() {
       setWinnerInfo(newWinnerInfo);
     } else {
       setIsXNext(prev => !prev);
-      // Fetch commentary for human moves
-      if (gameMode !== 'single' || currentPlayer === humanPlayer) {
-          fetchCommentary(newBoard, !isXNext ? 'X' : 'O', null);
-      }
     }
-  }, [board, currentPlayer, winnerInfo, gameMode, fetchCommentary, isXNext, humanPlayer]);
+  }, [board, currentPlayer, winnerInfo, gameMode, humanPlayer]);
 
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === aiPlayer && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
-        // We removed fetchCommentary from here to reduce API calls.
         const timer = setTimeout(() => {
             const move = findBestMove(board, aiDifficulty, aiPlayer);
             if (move !== -1) {
@@ -193,15 +193,16 @@ export default function TicTacToeGame() {
                if (newWinnerInfo) {
                 setWinnerInfo(newWinnerInfo);
               } else {
+                fetchCommentary(newBoard, humanPlayer, null);
                 setIsXNext(prev => !prev);
               }
             }
             setIsAiThinking(false);
-        }, 100); // Reduced AI thinking time
+        }, 500); 
 
         return () => clearTimeout(timer);
     }
-  }, [gameMode, currentPlayer, winner, aiDifficulty, board, aiPlayer, humanPlayer]);
+  }, [gameMode, currentPlayer, winner, aiDifficulty, board, aiPlayer, humanPlayer, fetchCommentary]);
   
   if (!isMounted || !gameMode) {
       return (
@@ -234,7 +235,7 @@ export default function TicTacToeGame() {
 
         <div className="flex items-center justify-between w-full pt-8">
             <Link href="/" passHref>
-                <Button variant="outline"><ArrowLeft className="mr-2 h-4 w-4"/> New Game</Button>
+                <Button variant="outline"><ArrowLeft className="mr-2 h-4 w-4"/> Home</Button>
             </Link>
             <Button onClick={resetGame}><RotateCw className="mr-2 h-4 w-4"/> Play Again</Button>
         </div>

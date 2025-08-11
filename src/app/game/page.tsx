@@ -1,7 +1,9 @@
 'use client';
-import { Suspense } from 'react';
+import { Suspense, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import TicTacToeGame from '@/components/game/TicTacToeGame';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
 
 function GameLoadingSkeleton() {
     return (
@@ -23,10 +25,27 @@ function GameLoadingSkeleton() {
     );
 }
 
-export default function GamePage() {
+function GamePageContent() {
+    const { user, loading } = useAuth();
+    const router = useRouter();
+
+    useEffect(() => {
+        if (!loading && !user) {
+            router.push('/auth');
+        }
+    }, [user, loading, router]);
+
+    if (loading || !user) {
+        return <GameLoadingSkeleton />;
+    }
+
     return (
         <Suspense fallback={<GameLoadingSkeleton />}>
             <TicTacToeGame />
         </Suspense>
-    )
+    );
+}
+
+export default function GamePage() {
+    return <GamePageContent />;
 }

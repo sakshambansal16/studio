@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, Bot, Baby, GraduationCap, User, Palette } from "lucide-react";
+import { Users, Bot, Baby, GraduationCap, User, Palette, LogIn, UserPlus, LogOut } from "lucide-react";
 import Link from "next/link";
 import {
   Select,
@@ -16,27 +16,95 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
+import { useAuth } from '@/hooks/useAuth';
+import { auth } from '@/lib/firebase';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 const THEMES = ['dark', 'jungle', 'ocean', 'space'];
 
 export default function Home() {
   const [theme, setTheme] = useState('dark');
   const [playerChoice, setPlayerChoice] = useState('X');
+  const { user, loading } = useAuth();
 
   useEffect(() => {
     const html = document.documentElement;
-    // Set the theme on initial load
+    const storedTheme = localStorage.getItem('theme') || 'dark';
+    setTheme(storedTheme);
     html.classList.remove('dark', 'theme-jungle', 'theme-ocean', 'theme-space');
-    if (theme === 'dark') {
+    if (storedTheme === 'dark') {
       html.classList.add('dark');
     } else {
-      html.classList.add(`theme-${theme}`);
+      html.classList.add(`theme-${storedTheme}`);
     }
-  }, [theme]);
+  }, []);
+
+  const handleThemeChange = (newTheme: string) => {
+    setTheme(newTheme);
+    localStorage.setItem('theme', newTheme);
+    const html = document.documentElement;
+    html.classList.remove('dark', 'theme-jungle', 'theme-ocean', 'theme-space');
+    if (newTheme === 'dark') {
+      html.classList.add('dark');
+    } else {
+      html.classList.add(`theme-${newTheme}`);
+    }
+  }
+
+  const handleLogout = async () => {
+    await auth.signOut();
+  }
 
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8">
+    <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8 relative">
+
+      <div className="absolute top-4 right-4">
+        {loading ? (
+          <Skeleton className="h-10 w-24" />
+        ) : user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Avatar className="h-10 w-10">
+                  <AvatarImage src={user.photoURL ?? undefined} alt={user.displayName ?? 'User'} />
+                  <AvatarFallback>{user.email?.charAt(0).toUpperCase()}</AvatarFallback>
+                </Avatar>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-56" align="end" forceMount>
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user.displayName ?? 'Welcome'}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
+                    {user.email}
+                  </p>
+                </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={handleLogout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <Link href="/auth" passHref>
+            <Button><LogIn className="mr-2" />Login</Button>
+          </Link>
+        )}
+      </div>
+
       <div className="text-center mb-8 sm:mb-12">
         <h1 className={cn("font-headline text-5xl sm:text-7xl font-bold tracking-tight", theme === 'dark' ? 'text-primary' : 'text-primary-foreground')}>
           Tic Tac Toe
@@ -112,7 +180,7 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <Select value={theme} onValueChange={setTheme}>
+          <Select value={theme} onValueChange={handleThemeChange}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>
