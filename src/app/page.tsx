@@ -16,36 +16,11 @@ import {
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
-
-const THEMES = ['dark', 'jungle', 'ocean', 'space'];
+import { useTheme } from '@/hooks/use-theme';
 
 export default function Home() {
-  const [theme, setTheme] = useState('dark');
+  const { theme, setTheme } = useTheme();
   const [playerChoice, setPlayerChoice] = useState('X');
-
-  useEffect(() => {
-    const html = document.documentElement;
-    const storedTheme = localStorage.getItem('theme') || 'dark';
-    setTheme(storedTheme);
-    html.classList.remove('dark', 'theme-jungle', 'theme-ocean', 'theme-space');
-    if (storedTheme === 'dark') {
-      html.classList.add('dark');
-    } else {
-      html.classList.add(`theme-${storedTheme}`);
-    }
-  }, []);
-
-  const handleThemeChange = (newTheme: string) => {
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    const html = document.documentElement;
-    html.classList.remove('dark', 'theme-jungle', 'theme-ocean', 'theme-space');
-    if (newTheme === 'dark') {
-      html.classList.add('dark');
-    } else {
-      html.classList.add(`theme-${newTheme}`);
-    }
-  }
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-background p-4 sm:p-8 relative">
@@ -82,13 +57,13 @@ export default function Home() {
               </RadioGroup>
             </div>
             <div className="flex flex-col gap-3">
-              <Link href={`/game?mode=single&age=Child&player=${playerChoice}&theme=${theme}`} passHref>
+              <Link href={`/game?mode=single&age=Child&player=${playerChoice}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
               </Link>
-              <Link href={`/game?mode=single&age=Teen&player=${playerChoice}&theme=${theme}`} passHref>
+              <Link href={`/game?mode=single&age=Teen&player=${playerChoice}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
               </Link>
-              <Link href={`/game?mode=single&age=Adult&player=${playerChoice}&theme=${theme}`} passHref>
+              <Link href={`/game?mode=single&age=Adult&player=${playerChoice}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
               </Link>
             </div>
@@ -106,7 +81,7 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col justify-center">
-            <Link href={`/game?mode=local&theme=${theme}`} passHref>
+            <Link href={`/game?mode=local`} passHref>
               <Button className="w-full text-lg" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
             </Link>
           </CardContent>
@@ -124,7 +99,7 @@ export default function Home() {
           </div>
         </CardHeader>
         <CardContent>
-          <Select value={theme} onValueChange={handleThemeChange}>
+          <Select value={theme} onValueChange={setTheme}>
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Select a theme" />
             </SelectTrigger>

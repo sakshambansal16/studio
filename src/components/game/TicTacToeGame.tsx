@@ -25,15 +25,16 @@ import { checkWinner, findBestMove } from '@/lib/game-logic';
 import type { AgeMode, BoardState, GameMode, Player, Stats } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '../ui/skeleton';
-
-const THEMES = ['dark', 'jungle', 'ocean', 'space'];
+import { useTheme } from '@/hooks/use-theme';
 
 export default function TicTacToeGame() {
   const searchParams = useSearchParams();
   const gameMode = useMemo(() => searchParams.get('mode') as GameMode | null, [searchParams]);
   const ageMode = useMemo(() => searchParams.get('age') as AgeMode | null, [searchParams]);
-  const theme = useMemo(() => searchParams.get('theme') || 'dark', [searchParams]);
   const humanPlayer = useMemo(() => (searchParams.get('player') as Player) || 'X', [searchParams]);
+  
+  // Initialize theme hook
+  useTheme();
 
   const [board, setBoard] = useState<BoardState>(Array(9).fill(null));
   const [isXNext, setIsXNext] = useState<boolean>(true);
@@ -54,25 +55,7 @@ export default function TicTacToeGame() {
 
   useEffect(() => {
     setIsMounted(true);
-    const html = document.documentElement;
-    // cleanup previous theme
-    THEMES.forEach(t => html.classList.remove(`theme-${t}`));
-    html.classList.remove('dark');
-    if(theme) {
-        if (theme === 'dark') {
-            html.classList.add('dark');
-        } else {
-            html.classList.add(`theme-${theme}`);
-        }
-    }
-    
-    // cleanup on component unmount
-    return () => {
-      THEMES.forEach(t => html.classList.remove(`theme-${t}`));
-      html.classList.remove('dark');
-      html.classList.add('dark'); // Revert to default
-    };
-  }, [theme]);
+  }, []);
 
   const statsKey = useMemo(() => {
     if (!gameMode) return null;
@@ -180,25 +163,22 @@ export default function TicTacToeGame() {
   useEffect(() => {
     if (gameMode === 'single' && currentPlayer === aiPlayer && !winner && aiDifficulty !== null) {
         setIsAiThinking(true);
-        const timer = setTimeout(() => {
-            const move = findBestMove(board, aiDifficulty, aiPlayer);
-            if (move !== -1) {
-              const newBoard = [...board];
-              newBoard[move] = aiPlayer;
-              setBoard(newBoard);
+        // The AI move logic is now synchronous after removing the timeout
+        const move = findBestMove(board, aiDifficulty, aiPlayer);
+        if (move !== -1) {
+          const newBoard = [...board];
+          newBoard[move] = aiPlayer;
+          setBoard(newBoard);
 
-              const newWinnerInfo = checkWinner(newBoard);
-               if (newWinnerInfo) {
-                setWinnerInfo(newWinnerInfo);
-              } else {
-                fetchCommentary(newBoard, humanPlayer, null);
-                setIsXNext(prev => !prev);
-              }
-            }
-            setIsAiThinking(false);
-        }, 500); 
-
-        return () => clearTimeout(timer);
+          const newWinnerInfo = checkWinner(newBoard);
+           if (newWinnerInfo) {
+            setWinnerInfo(newWinnerInfo);
+          } else {
+            fetchCommentary(newBoard, humanPlayer, null);
+            setIsXNext(prev => !prev);
+          }
+        }
+        setIsAiThinking(false);
     }
   }, [gameMode, currentPlayer, winner, aiDifficulty, board, aiPlayer, humanPlayer, fetchCommentary]);
   
