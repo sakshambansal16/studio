@@ -82,13 +82,13 @@ export default function Home() {
               </RadioGroup>
             </div>
             <div className="flex flex-col gap-3">
-              <Link href={`/game?mode=single&age=Child&player=${playerChoice}`} passHref>
+              <Link href={`/game?mode=single&age=Child&player=${playerChoice}&theme=${theme}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><Baby className="mr-2 h-5 w-5" /> Child Mode</Button>
               </Link>
-              <Link href={`/game?mode=single&age=Teen&player=${playerChoice}`} passHref>
+              <Link href={`/game?mode=single&age=Teen&player=${playerChoice}&theme=${theme}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><GraduationCap className="mr-2 h-5 w-5" /> Teen Mode</Button>
               </Link>
-              <Link href={`/game?mode=single&age=Adult&player=${playerChoice}`} passHref>
+              <Link href={`/game?mode=single&age=Adult&player=${playerChoice}&theme=${theme}`} passHref>
                 <Button className="w-full justify-start" variant="outline"><User className="mr-2 h-5 w-5" /> Adult Mode</Button>
               </Link>
             </div>
@@ -106,7 +106,7 @@ export default function Home() {
             </div>
           </CardHeader>
           <CardContent className="flex-grow flex flex-col justify-center">
-            <Link href="/game?mode=local" passHref>
+            <Link href={`/game?mode=local&theme=${theme}`} passHref>
               <Button className="w-full text-lg" size="lg"><Users className="mr-2 h-6 w-6" /> Start Game</Button>
             </Link>
           </CardContent>
